@@ -1,0 +1,2 @@
+def getMain():
+    pass
