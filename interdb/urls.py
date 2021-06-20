@@ -16,12 +16,13 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path
 
-from inventory.productPage import getCustomer
-from inventory.productPage import getRecord
+from inventory.views import *
 
 urlpatterns = [
     path('admin/', admin.site.urls),
 
-    path('customer/', getCustomer),
-    path('record/', getRecord),
+    path('login/', loginPage),
+    path('customer/', customerPage),
+    path('customer/<int:customer_id>', customerDetailPage),
+    path('record/', recordPage),
 ]
