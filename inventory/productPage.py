@@ -6,16 +6,21 @@ import json
 
 from .models import *
 
+
 #   url /customer
 #   http-method : GET
 #   parameter : null
 #   respone :
-#           cusotmer_id : [puchase_count, price_sum]
+#           {
+#           cusotmer_id : cusotmer_id,
+#           puchase_count : puchase_count,
+#           price_sum : price_sum,
+#           }
 
 
 def getCustomer(request):
 
-    result_dict = dict()
+    result_list = []
     customer_id_set = Customers.objects.values('customer_id')
 
     for c_id_set in customer_id_set:
@@ -33,9 +38,14 @@ def getCustomer(request):
             for p_set in price_set:
                 price_sum += p_set['unit_price']
 
-        result_dict[c_id_set['customer_id']] = [purchase_count, price_sum]
+        result_dict = dict()
+        result_dict["customer_id"] = c_id_set['customer_id']
+        result_dict["purchase_count"] = purchase_count
+        result_dict["price_sum"] = price_sum
 
-    json_result = json.dumps(result_dict)
+        result_list.append(result_dict)
+
+    json_result = json.dumps(result_list, indent="\t")
     return json_result
 
 
@@ -44,7 +54,12 @@ def getCustomer(request):
 #   parameter : null
 #   respone :
 #           id : customer_id
-#           product : [product_count, list_price]
+#           product_name : {
+#               product_name : product_name
+#               product_count : product_count
+#               list_price : list_price
+#           }
+
 def getCustomerDetail(request, customer_id):
 
     result_dict = dict()
@@ -63,13 +78,20 @@ def getCustomerDetail(request, customer_id):
             product_list_price = Products.objects.values(
                 'list_price').get(product_id=o_i_set['product'])['list_price']
 
+            tmp_dict = dict()
             if product_name in result_dict:
-                count = result_dict.get(product_name)[0]
-                result_dict[product_name] = [count+1, product_list_price]
+                result_dict.get(product_name).update({'purchase_count': result_dict.get(
+                    product_name).get('purchase_count') + 1})
+                result_dict[product_name] = result_dict.get(product_name)
             else:
-                result_dict[product_name] = [1, product_list_price]
+                tmp_dict['product_name'] = product_name
+                tmp_dict['purchase_count'] = 1
+                tmp_dict['product_list_price'] = product_list_price
 
-    json_result = json.dumps(result_dict)
+                result_dict[product_name] = tmp_dict
+
+    json_result = json.dumps(result_dict, indent="\t")
+    print(json_result)
     return json_result
 
 
@@ -77,10 +99,14 @@ def getCustomerDetail(request, customer_id):
 #   http-method : GET
 #   parameter : null
 #   respone :
-#           employee_name : [employee_id, price_sum]
+#           {
+#           employee_id : employee_id,
+#           employee_name : employee_name,
+#           price_sum : price_sum,
+#           }
 def getRecord(request):
 
-    result_dict = dict()
+    result_list = []
     salesman_set = Employees.objects.values(
         'employee_id').filter(job_title__contains='Sales')
 
@@ -88,10 +114,9 @@ def getRecord(request):
         order_set = Orders.objects.values('order_id').filter(
             salesman=s_set['employee_id'])
 
-        employee_first_name = Employees.objects.values(
+        employee_name = Employees.objects.values(
+            'last_name').get(employee_id=s_set['employee_id']).get('last_name') + ' ' + Employees.objects.values(
             'first_name').get(employee_id=s_set['employee_id']).get('first_name')
-        employee_last_name = Employees.objects.values(
-            'last_name').get(employee_id=s_set['employee_id']).get('last_name')
 
         price_sum = 0
         for o_set in order_set:
@@ -101,9 +126,13 @@ def getRecord(request):
             for i_set in item_set:
                 price_sum += i_set['unit_price']
 
-        if price_sum != 0:
-            result_dict[employee_first_name + ' ' +
-                        employee_last_name] = [s_set['employee_id'], price_sum]
+        result_dict = dict()
+        result_dict["employee_id"] = s_set['employee_id']
+        result_dict["employee_name"] = employee_name
+        result_dict["price_sum"] = price_sum
 
-    json_result = json.dumps(result_dict)
+        result_list.append(result_dict)
+
+    json_result = json.dumps(result_list, indent="\t")
+    print(json_result)
     return json_result
