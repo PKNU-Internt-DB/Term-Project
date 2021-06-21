@@ -8,7 +8,21 @@ import json
 
 def getProduct():
     product=Products.objects.values('product_name','list_price','category','description')
-    obj1=json.dumps(list(product))
+    tmp_list = []
+    for p in product:
+        category_name = ProductCategories.objects.filter(category_id=p['category']).values('category_name')
+
+        tmp_dict = dict()
+        tmp_dict['product_name'] = p['product_name']
+        tmp_dict['list_price'] = p['list_price']
+        tmp_dict['category'] = category_name[0]['category_name']
+        tmp_dict['description'] = p['description']
+
+        tmp_list.append(tmp_dict)
+
+    # print(tmp_list)
+    obj1=json.dumps(tmp_list,indent="\t")
+    print(obj1)
     return obj1
 
 
@@ -67,8 +81,8 @@ def getCustomer(request):
 
 def getCustomerDetail(request, customer_id):
 
-    result_dict = dict()
-    result_dict['id'] = customer_id
+    result_list = []
+    # result_dict['customer_id'] = customer_id
 
     order_set = Orders.objects.values(
         'order_id').filter(customer=customer_id)
@@ -84,18 +98,13 @@ def getCustomerDetail(request, customer_id):
                 'list_price').get(product_id=o_i_set['product'])['list_price']
 
             tmp_dict = dict()
-            if product_name in result_dict:
-                result_dict.get(product_name).update({'purchase_count': result_dict.get(
-                    product_name).get('purchase_count') + 1})
-                result_dict[product_name] = result_dict.get(product_name)
-            else:
-                tmp_dict['product_name'] = product_name
-                tmp_dict['purchase_count'] = 1
-                tmp_dict['product_list_price'] = product_list_price
+            tmp_dict['product_name'] = product_name
+            tmp_dict['purchase_count'] = 1
+            tmp_dict['product_list_price'] = product_list_price
 
-                result_dict[product_name] = tmp_dict
+            result_list.append(tmp_dict)
 
-    json_result = json.dumps(result_dict, indent="\t")
+    json_result = json.dumps(result_list, indent="\t")
     print(json_result)
     return json_result
 

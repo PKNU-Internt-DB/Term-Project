@@ -9,6 +9,7 @@ from .loginPage import *
 def mainPage1(request):
     if request.method == 'GET':
         return JsonResponse(getMain1(),safe=False)
+
 def mainPage3(request):
     if request.method=='GET':
         return JsonResponse(getMain3(request.GET.get('ware_id')),safe=False)
