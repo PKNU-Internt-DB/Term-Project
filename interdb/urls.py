@@ -15,7 +15,12 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path
+from inventory import views as inven_views
+import inventory
 
 urlpatterns = [
     path('admin/', admin.site.urls),
+    path('main1/',inven_views.mainPage1),
+    path('main3/',inven_views.mainPage3),
+    path('product/',inven_views.productPage),
 ]
